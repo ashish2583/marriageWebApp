@@ -1,51 +1,88 @@
-import {createContext, useCallback, useContext, useState} from 'react';
-import {apiRequest, endpoints, unwrap} from './api';
-import {categories as demoCategories, demoCustomer, demoVendor, products as demoProducts, vendors as demoVendors} from './demoData';
+import {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
+import {login as loginApi, logout as logoutApi} from '../api/authApi';
+import {getSession, saveSession} from '../api/storage';
+import {apiRequest, endpoints} from './api';
+import {extractList} from './dataHelpers';
+import {categories as demoCategories, products as demoProducts, vendors as demoVendors} from './demoData';
 
 const AppContext = createContext(null);
-const SESSION_KEY = 'merrage-web-session';
-
-const getStoredSession = () => {
-  try {
-    return JSON.parse(localStorage.getItem(SESSION_KEY)) || null;
-  } catch {
-    return null;
-  }
-};
 
 export function AppProvider({children}) {
-  const [session, setSessionState] = useState(getStoredSession);
+  const [session, setSessionState] = useState(getSession);
   const [toast, setToast] = useState(null);
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
   const [localProducts, setLocalProducts] = useState(demoProducts);
   const [localCategories, setLocalCategories] = useState(demoCategories);
+  const [loadingCount, setLoadingCount] = useState(0);
+  const toastTimer = useRef(null);
 
-  const setSession = next => {
+  const setSession = useCallback(next => {
     setSessionState(next);
-    if (next) localStorage.setItem(SESSION_KEY, JSON.stringify(next));
-    else localStorage.removeItem(SESSION_KEY);
-  };
-
-  const notify = useCallback((message, tone = 'success') => {
-    setToast({message, tone});
-    window.setTimeout(() => setToast(null), 3200);
+    saveSession(next);
   }, []);
 
-  const login = async ({phone, password, role}) => {
-    try {
-      const response = await apiRequest(endpoints.login, {
-        method: 'POST',
-        body: JSON.stringify({phone, password}),
-      });
-      setSession({user: unwrap(response), token: response.token});
-    } catch {
-      setSession({user: role === 'vendor' ? demoVendor : demoCustomer, token: 'demo-token'});
-      notify('Demo session opened. Live API was unavailable.', 'info');
+  const dismissToast = useCallback(() => {
+    if (toastTimer.current) window.clearTimeout(toastTimer.current);
+    toastTimer.current = null;
+    setToast(null);
+  }, []);
+
+  const notify = useCallback((message, tone = 'success') => {
+    if (toastTimer.current) window.clearTimeout(toastTimer.current);
+    setToast({message, tone});
+    toastTimer.current = window.setTimeout(() => {
+      setToast(null);
+      toastTimer.current = null;
+    }, tone === 'error' ? 5200 : 3800);
+  }, []);
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setSession(null);
+      notify('Your session expired. Please sign in again.', 'error');
+    };
+    window.addEventListener('merrage:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('merrage:unauthorized', handleUnauthorized);
+  }, [notify, setSession]);
+
+  useEffect(() => {
+    const handleApiLoading = event => {
+      setLoadingCount(count => Math.max(0, count + (event.detail?.active ? 1 : -1)));
+    };
+    window.addEventListener('merrage:api-loading', handleApiLoading);
+    return () => window.removeEventListener('merrage:api-loading', handleApiLoading);
+  }, []);
+
+  useEffect(() => {
+    if (session && !session.token) {
+      setSession(null);
+      notify('Please sign in again to continue.', 'error');
     }
+  }, [notify, session, setSession]);
+
+  useEffect(() => {
+    if (!session?.token) return;
+    apiRequest(endpoints.categories, {token: session.token})
+      .then(response => {
+        const categories = extractList(response);
+        if (categories.length) setLocalCategories(categories);
+      })
+      .catch(error => notify(error.message || 'Unable to load categories.', 'error'));
+  }, [notify, session]);
+
+  const login = async credentials => {
+    const nextSession = await loginApi(credentials);
+    setSession(nextSession);
+    notify('Signed in successfully.');
+    return nextSession;
   };
 
-  const logout = () => setSession(null);
+  const logout = () => {
+    logoutApi();
+    setSession(null);
+    notify('Signed out.');
+  };
 
   const updateSessionUser = user =>
     setSession({...session, user: {...session.user, ...user}});
@@ -61,9 +98,10 @@ export function AppProvider({children}) {
   };
 
   const value = {
-    session, setSession, login, logout, updateSessionUser, toast, notify,
+    session, setSession, login, logout, updateSessionUser, toast, notify, dismissToast,
     cart, setCart, addToCart, orders, setOrders,
     localProducts, setLocalProducts, localCategories, setLocalCategories,
+    loading: loadingCount > 0,
     demoVendors,
   };
 

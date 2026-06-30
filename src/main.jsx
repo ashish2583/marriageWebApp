@@ -4,6 +4,10 @@ import {BrowserRouter} from 'react-router-dom';
 import App from './App';
 import {AppProvider} from './lib/AppContext';
 import './styles.css';
+import './admin-mobile.css';
+import './admin-orders.css';
+import './admin-vendors.css';
+import './admin-manage.css';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -23,7 +27,7 @@ class ErrorBoundary extends React.Component {
     if (this.state.error) {
       return (
         <main className="fatal-error">
-          <h1>Merrage could not start</h1>
+          <h1>marriage could not start</h1>
           <p>{this.state.error.message}</p>
           <button onClick={() => window.location.reload()}>Reload App</button>
         </main>

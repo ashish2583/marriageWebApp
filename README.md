@@ -1,28 +1,60 @@
 # Merrage Web App
 
-Responsive React web application matching the Merrage mobile app's customer and vendor workflows.
+React.js web app for the existing Merrage React Native backend. It reuses the mobile app API base URL and endpoint contracts for Customer, Vendor, and Admin roles.
 
-## Run locally
+## Install
 
 ```bash
-npm install --cache .npm-cache
+npm install
+```
+
+If your npm cache has permission issues, use a project-local cache:
+
+```bash
+npm_config_cache=.npm-cache npm install
+```
+
+## Run
+
+```bash
 npm run dev
 ```
 
 Open `http://127.0.0.1:5173`.
 
-For a quick preview, enter any phone number and password on the login screen, then choose Customer or Vendor. The app first calls the configured API and falls back to local preview data if the API is unavailable or blocked by browser CORS.
+## API Base URL
 
-## Production build
+Copy `.env.example` to `.env.local` and set:
 
 ```bash
-npm run lint
-npm run build
-npm run preview
+VITE_API_BASE_URL=https://marrige-item.vercel.app/
 ```
 
-## API configuration
+This URL comes from the React Native app at `src/WebApi/Service.js`.
 
-Copy `.env.example` to `.env.local` and update `VITE_API_BASE_URL` when needed.
+## Login Flow
 
-Implemented API workflows include authentication, profile editing, password changes, categories, customer/vendor product discovery, product management, product-media deletion, cart, bookings, orders, and support queries.
+The login page supports `Customer`, `Vendor`, and `Admin`.
+
+The web app calls `api/auth/login` with the same `phone`, `password`, and `deviceInfo` shape used by the mobile app. On success it stores the token and user in browser storage, attaches the token to future API calls, and redirects by role:
+
+- Customer: `/customer/dashboard`
+- Vendor: `/vendor/dashboard`
+- Admin: `/admin/dashboard`
+
+Protected routes redirect unauthenticated users to `/login`. API `401` responses clear the stored session and return the user to login.
+
+## Build
+
+```bash
+npm run build
+```
+
+## Implemented Areas
+
+- Reusable axios API client with token interceptor
+- Auth helpers for login, logout, token, current user, and role checks
+- Customer dashboard, vendor discovery, products, cart, orders, support, profile
+- Vendor dashboard, product management, categories, bookings, profile
+- Admin dashboard, orders, vendors, customers, products, categories, payments, queries
+- Responsive sidebar/topbar layouts, loading/error/empty states, and toast messages

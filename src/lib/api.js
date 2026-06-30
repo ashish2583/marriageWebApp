@@ -1,73 +1,85 @@
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'https://marrige-item.vercel.app';
+import apiClient, {API_BASE_URL, getApiError} from '../api/axiosInstance';
+import {endpoints} from '../api/endpoints';
+import {unwrap} from '../api/apiUtils';
 
-export const endpoints = {
-  register: 'api/auth/register',
-  login: 'api/auth/login',
-  forgotPassword: 'api/auth/forgot-password',
-  verifyOtp: 'api/auth/otp-verification',
-  resetPassword: 'api/auth/reset-password',
-  profile: 'api/userData/userData',
-  editProfile: 'api/userData/edit-profile',
-  changePassword: 'api/userData/change-password/',
-  categories: 'api/category/getAllCat',
-  userCategories: 'api/category/getAllCatByUser',
-  createCategory: 'api/category/createCat',
-  vendorsByCategory: 'api/userData/getAllUserByCat?catId=',
-  createProduct: 'api/product/createPro',
-  customerProducts: 'api/product/productByCustomer',
-  vendorProducts: 'api/product/productByVendor',
-  editProduct: 'api/product/edit/',
-  deleteProduct: 'api/product/deletePro/',
-  deleteProductMedia: 'api/product/delete-product-media/',
-  uploadImage: 'api/product/uplodeImage',
-  uploadVideo: 'api/product/uplodeVideo',
-  checkBooking: 'api/order/check_booking',
-  createBooking: 'api/order/create_booking',
-  orders: 'api/order/my-orders/',
-  addCart: 'api/cart/addCart',
-  cart: 'api/cart/getAllCart/',
-  deleteCart: 'api/cart/delete/',
-  updateCart: 'api/cart/update/',
-  deleteUserCart: 'api/cart/delete-user-cart/',
-  support: 'api/userQury/submitQury',
-  uploadBulkImage: 'api/uploadeImage/uploadeImage',
-  deleteImage: 'api/uploadeImage/deleteImage/',
+export {API_BASE_URL, endpoints, unwrap};
+
+const emitApiLoading = active => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('merrage:api-loading', {detail: {active}}));
+  }
 };
 
-const buildUrl = path =>
-  `${API_BASE_URL.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+const isAuthDenied = message =>
+  /access denied|auth token|unauthorized|jwt|token/i.test(String(message || ''));
 
-export async function apiRequest(path, {method = 'GET', token, body} = {}) {
-  const isForm = body instanceof FormData;
-  const headers = {Accept: 'application/json'};
-  const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 7000);
-  if (!isForm) headers['Content-Type'] = 'application/json';
-  if (token) headers.Authorization = `Bearer ${token}`;
-
-  let response;
-  try {
-    response = await fetch(buildUrl(path), {
-      method,
-      headers,
-      body,
-      signal: controller.signal,
-    });
-  } finally {
-    window.clearTimeout(timeout);
+const notifyUnauthorized = () => {
+  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+    window.dispatchEvent(new Event('merrage:unauthorized'));
   }
+};
+
+const fetchFormDataRequest = async (path, {method, body, token}) => {
+  const url = /^https?:\/\//i.test(path)
+    ? path
+    : `${API_BASE_URL.replace(/\/+$/, '')}/${String(path).replace(/^\/+/, '')}`;
+  const headers = {Accept: 'application/json'};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+    headers['Auth-token'] = token;
+  }
+  const response = await fetch(url, {method, headers, body});
+  const text = await response.text();
   let data = {};
   try {
-    data = await response.json();
+    data = text ? JSON.parse(text) : {};
   } catch {
-    data = {};
+    data = {message: text};
   }
   if (!response.ok || data?.status === false) {
-    throw new Error(data?.message || data?.error?.[0]?.message || 'Request failed');
+    throw new Error(data?.message || data?.error?.[0]?.message || data?.error?.message || data?.error || `Request failed (${response.status})`);
   }
   return data;
-}
+};
 
-export const unwrap = response =>
-  response?.data?.user || response?.data || response?.user || response || {};
+export async function apiRequest(path, {method = 'GET', body, token, authRequired = true} = {}) {
+  emitApiLoading(true);
+  try {
+    const config = {method, url: path};
+    if (token) {
+      config.headers = {
+        Authorization: `Bearer ${token}`,
+        'Auth-token': token,
+      };
+    }
+    if (body instanceof FormData) {
+      config.data = body;
+    } else if (typeof body === 'string') {
+      config.data = JSON.parse(body || '{}');
+    } else if (body) {
+      config.data = body;
+    }
+    const response = await apiClient(config);
+    if (response.data?.status === false) {
+      const message = response.data?.message || 'Request failed';
+      if (authRequired && isAuthDenied(message)) notifyUnauthorized();
+      throw new Error(message);
+    }
+    return response.data;
+  } catch (error) {
+    if (body instanceof FormData && method !== 'GET' && error?.message === 'Network Error') {
+      try {
+        return await fetchFormDataRequest(path, {method, body, token});
+      } catch (fetchError) {
+        const message = getApiError(fetchError, 'Request failed');
+        if (authRequired && isAuthDenied(message)) notifyUnauthorized();
+        throw new Error(message);
+      }
+    }
+    const message = getApiError(error, 'Request failed');
+    if (authRequired && isAuthDenied(message)) notifyUnauthorized();
+    throw new Error(message);
+  } finally {
+    emitApiLoading(false);
+  }
+}
