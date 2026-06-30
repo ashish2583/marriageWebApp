@@ -2,7 +2,7 @@ import {CheckCircle2, Film, Image as ImageIcon, PackagePlus, Save, Trash2, Uploa
 import {useEffect, useMemo, useState} from 'react';
 import {useLocation, useNavigate, useParams} from 'react-router-dom';
 import GoogleLocationPicker from '../../components/GoogleLocationPicker';
-import {Button, Card, Field, PageHeader} from '../../components/UI';
+import {Button, Card, Field, Modal, PageHeader} from '../../components/UI';
 import {useApp} from '../../lib/AppContext';
 import {API_BASE_URL, apiRequest, endpoints} from '../../lib/api';
 import {extractList, userIdOf} from '../../lib/dataHelpers';
@@ -56,6 +56,8 @@ export function ProductForm({edit = false}) {
   const [images, setImages] = useState([]);
   const [videos, setVideos] = useState([]);
   const [activeSection, setActiveSection] = useState('details');
+  const [previewImage, setPreviewImage] = useState('');
+  const [previewVideo, setPreviewVideo] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -101,7 +103,6 @@ export function ProductForm({edit = false}) {
     if (!form.catId) { notify('Please Select Catogry', 'error'); return false; }
     if (!form.shortDetails.trim()) { notify('Please Enter Product Short', 'error'); return false; }
     if (!String(form.travelPerKilometer).trim()) { notify('Please Enter Travel charge Per Kilometer', 'error'); return false; }
-    if (!form.location.trim()) { notify('Please select product location', 'error'); return false; }
     return true;
   };
 
@@ -113,11 +114,13 @@ export function ProductForm({edit = false}) {
     body.append('price', form.price);
     body.append('quantity', String(form.quantity).trim());
     body.append('catId', form.catId);
-    body.append('location', form.location.trim());
-    body.append('address', form.location.trim());
-    body.append('latitude', form.locationCoordinates?.lat || '');
-    body.append('longitude', form.locationCoordinates?.lng || '');
-    body.append('isActive', String(Boolean(form.isActive)));
+    if (form.location.trim()) {
+      body.append('location', form.location.trim());
+      body.append('address', form.location.trim());
+      body.append('latitude', form.locationCoordinates?.lat || '');
+      body.append('longitude', form.locationCoordinates?.lng || '');
+    }
+    body.append('isActive', form.isActive ? '1' : '0');
   };
 
   const createProduct = async event => {
@@ -136,7 +139,7 @@ export function ProductForm({edit = false}) {
       const response = await apiRequest(endpoints.createProduct, {method: 'POST', token: session.token, body});
       const previewImages = images.map(URL.createObjectURL);
       const previewVideos = videos.map(URL.createObjectURL);
-      const created = response?.data?.product || response?.product || {
+      const created = response?.data?.product || response?.data || response?.product || {
         ...form,
         _id: `local-${Date.now()}`,
         userId: userIdOf(session.user),
@@ -163,7 +166,7 @@ export function ProductForm({edit = false}) {
     });
     if (form.locationCoordinates?.lat) changes.latitude = form.locationCoordinates.lat;
     if (form.locationCoordinates?.lng) changes.longitude = form.locationCoordinates.lng;
-    if (Boolean(form.isActive) !== Boolean(existing.isActive ?? true)) changes.isActive = form.isActive;
+    if (Boolean(form.isActive) !== Boolean(existing.isActive ?? true)) changes.isActive = form.isActive ? 1 : 0;
     return changes;
   }, [existing, form]);
 
@@ -238,13 +241,17 @@ export function ProductForm({edit = false}) {
         <div className="mobile-media-grid">
           {(existingMedia || []).map(url => (
             <article key={url}>
-              {type === 'image' ? <img src={mediaUrl(url)} alt="" /> : <span className="video-placeholder"><Film />Video</span>}
+              {type === 'image'
+                ? <button type="button" className="media-preview-button" onClick={() => setPreviewImage(mediaUrl(url))}><img src={mediaUrl(url)} alt="" /></button>
+                : <button type="button" className="media-preview-button video-preview-card" onClick={() => setPreviewVideo(mediaUrl(url))}><Film /><span>Play Video</span></button>}
               {edit && <button type="button" onClick={() => deleteMedia(url, type)}><Trash2 size={14} />Delete</button>}
             </article>
           ))}
           {newMedia.map(file => (
             <article key={file.name}>
-              {type === 'image' ? <img src={URL.createObjectURL(file)} alt="" /> : <span className="video-placeholder"><Film />Video</span>}
+              {type === 'image'
+                ? <button type="button" className="media-preview-button" onClick={() => setPreviewImage(URL.createObjectURL(file))}><img src={URL.createObjectURL(file)} alt="" /></button>
+                : <button type="button" className="media-preview-button video-preview-card" onClick={() => setPreviewVideo(URL.createObjectURL(file))}><Film /><span>Play Video</span></button>}
               <button type="button" onClick={() => setter(current => current.filter(item => item !== file))}>Remove</button>
             </article>
           ))}
@@ -322,6 +329,8 @@ export function ProductForm({edit = false}) {
         )}
       </form>
       {!edit && !images.length && <Card className="product-form-tip"><PackagePlus /><p>Add at least one clear product photo so customers can inspect the service before booking.</p><img src={asset('image/Wedding.jpg')} alt="" /></Card>}
+      {previewImage && <Modal title="Image preview" onClose={() => setPreviewImage('')} wide><div className="image-preview-modal"><img src={previewImage} alt="" /></div></Modal>}
+      {previewVideo && <Modal title="Video preview" onClose={() => setPreviewVideo('')} wide><video className="video-player" src={previewVideo} controls autoPlay playsInline /></Modal>}
     </div>
   );
 }

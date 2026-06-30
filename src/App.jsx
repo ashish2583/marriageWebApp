@@ -85,6 +85,7 @@ export default function App() {
     <Route path="/login" element={<Login />} />
     <Route path="/signup" element={<Signup />} />
     <Route path="/forgot-password" element={<ForgotPassword />} />
+    <Route path="/payment-related-policy" element={<PaymentRelatedPolicy />} />
     <Route element={<Protected><AppShell /></Protected>}>
       <Route path="/" element={<Navigate to="/customer/dashboard" replace />} />
       <Route path="/customer" element={<Navigate to="/customer/dashboard" replace />} />
@@ -112,7 +113,7 @@ export default function App() {
       <Route path="/profile/edit" element={<Protected role="customer"><EditProfile /></Protected>} />
       <Route path="/change-password" element={<Protected role="customer"><ChangePassword /></Protected>} />
       <Route path="/privacy" element={<Protected role="customer"><Privacy /></Protected>} />
-      <Route path="/payment-related-policy" element={<PaymentRelatedPolicy />} />
+      <Route path="/app/payment-related-policy" element={<PaymentRelatedPolicy />} />
       <Route path="/bookform" element={<Navigate to="/cart" replace />} />
       <Route path="/checkout" element={<Navigate to="/cart" replace />} />
       <Route path="/vendor" element={<Navigate to="/vendor/dashboard" replace />} />

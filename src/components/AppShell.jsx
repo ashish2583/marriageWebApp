@@ -13,7 +13,7 @@ const customerLinks = [
   ['/cancelled-orders', 'Cancelled Orders', ShieldAlert],
   ['/chat', 'Chat', MessageCircleMore],
   ['/support', 'Support', MessageCircleMore],
-  ['/payment-related-policy', 'Payment Related Policy', FileText],
+  ['/app/payment-related-policy', 'Payment Related Policy', FileText],
   ['/profile', 'Profile', CircleUserRound],
 ];
 
@@ -26,7 +26,7 @@ const vendorLinks = [
   ['/vendor/image-server', 'Image Server', Server],
   ['/vendor/chat', 'Chat', MessageCircleMore],
   ['/vendor/portal-charges', 'Portal Charges', ShieldAlert],
-  ['/payment-related-policy', 'Payment Related Policy', FileText],
+  ['/app/payment-related-policy', 'Payment Related Policy', FileText],
   ['/vendor/profile', 'Profile', CircleUserRound],
 ];
 
@@ -43,7 +43,7 @@ const adminLinks = [
   ['/admin/categories', 'Categories', FolderTree],
   ['/admin/payments', 'Payments', CreditCard],
   ['/admin/queries', 'Queries', MessageCircleMore],
-  ['/payment-related-policy', 'Payment Related Policy', FileText],
+  ['/app/payment-related-policy', 'Payment Related Policy', FileText],
   ['/admin/settings', 'Settings', ShieldAlert],
 ];
 

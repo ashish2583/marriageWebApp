@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import {ArrowRight, Building2, CheckCircle2, Eye, EyeOff, ShieldCheck, Users} from 'lucide-react';
+import {ArrowRight, Building2, CheckCircle2, Eye, EyeOff, FileText, ShieldCheck, Users} from 'lucide-react';
 import {useState} from 'react';
 import {Link, Navigate, useNavigate} from 'react-router-dom';
 import {useApp} from '../../lib/AppContext';
@@ -53,6 +53,7 @@ export default function Login() {
       <label className="field"><span>Password</span><div className="password-field"><input type={show ? 'text' : 'password'} value={form.password} onChange={e => setForm({...form, password: e.target.value})} placeholder="Enter password" /><button type="button" onClick={() => setShow(!show)}>{show ? <EyeOff /> : <Eye />}</button></div></label>
       {error && <p className="form-error">{error}</p>}
       <Button disabled={loading}>{loading ? 'Signing in...' : <>Sign In <ArrowRight size={18} /></>}</Button>
+      <Link className="auth-policy-button" to="/payment-related-policy"><FileText size={18} /> Payment Related Policy</Link>
       <div className="auth-links"><Link to="/forgot-password">Forgot password?</Link><span>New here? <Link to="/signup">Create account</Link></span></div>
       <p className="demo-note">For admin login, select Admin and use the admin account phone/password from your backend.</p>
     </form></main>
