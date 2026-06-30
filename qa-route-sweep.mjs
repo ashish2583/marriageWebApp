@@ -62,6 +62,7 @@ const routes = [
   ['customer', '/cancellation-policy', 'Cancellation Policy'],
   ['customer', '/chat', 'Chat'],
   ['customer', '/support', 'Support & Chat'],
+  ['customer', '/payment-related-policy', 'Payment Related Policy'],
   ['customer', '/profile', 'Profile'],
   ['customer', '/profile/edit', 'Edit Profile'],
   ['customer', '/change-password', 'Change Password'],
@@ -74,6 +75,7 @@ const routes = [
   ['vendor', '/vendor/image-server', 'Image Server Setup'],
   ['vendor', '/vendor/chat', 'Vendor Chat'],
   ['vendor', '/vendor/portal-charges', 'Portal Charges'],
+  ['vendor', '/payment-related-policy', 'Payment Related Policy'],
   ['vendor', '/vendor/cancellation-policy', 'Cancellation Policy'],
   ['vendor', '/vendor/profile', 'Profile'],
   ['vendor', '/vendor/profile/edit', 'Edit Profile'],
@@ -91,6 +93,7 @@ const routes = [
   ['admin', '/admin/categories', 'Categories'],
   ['admin', '/admin/payments', 'Payments'],
   ['admin', '/admin/queries', 'Queries'],
+  ['admin', '/payment-related-policy', 'Payment Related Policy'],
   ['admin', '/admin/settings', 'Settings'],
 ];
 

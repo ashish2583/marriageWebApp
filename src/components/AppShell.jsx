@@ -1,4 +1,4 @@
-import {CalendarDays, CircleUserRound, CreditCard, FolderTree, HeartHandshake, Home, Images, LayoutDashboard, LockKeyhole, LogOut, Menu, MessageCircleMore, Package, PackagePlus, PartyPopper, Server, ShieldAlert, ShoppingBag, ShoppingCart, Store, Tags, Users, X} from 'lucide-react';
+import {CalendarDays, CircleUserRound, CreditCard, FileText, FolderTree, HeartHandshake, Home, Images, LayoutDashboard, LockKeyhole, LogOut, Menu, MessageCircleMore, Package, PackagePlus, PartyPopper, Server, ShieldAlert, ShoppingBag, ShoppingCart, Store, Tags, Users, X} from 'lucide-react';
 import {useEffect, useState} from 'react';
 import {NavLink, Outlet, useLocation} from 'react-router-dom';
 import {useApp} from '../lib/AppContext';
@@ -13,6 +13,7 @@ const customerLinks = [
   ['/cancelled-orders', 'Cancelled Orders', ShieldAlert],
   ['/chat', 'Chat', MessageCircleMore],
   ['/support', 'Support', MessageCircleMore],
+  ['/payment-related-policy', 'Payment Related Policy', FileText],
   ['/profile', 'Profile', CircleUserRound],
 ];
 
@@ -25,6 +26,7 @@ const vendorLinks = [
   ['/vendor/image-server', 'Image Server', Server],
   ['/vendor/chat', 'Chat', MessageCircleMore],
   ['/vendor/portal-charges', 'Portal Charges', ShieldAlert],
+  ['/payment-related-policy', 'Payment Related Policy', FileText],
   ['/vendor/profile', 'Profile', CircleUserRound],
 ];
 
@@ -41,6 +43,7 @@ const adminLinks = [
   ['/admin/categories', 'Categories', FolderTree],
   ['/admin/payments', 'Payments', CreditCard],
   ['/admin/queries', 'Queries', MessageCircleMore],
+  ['/payment-related-policy', 'Payment Related Policy', FileText],
   ['/admin/settings', 'Settings', ShieldAlert],
 ];
 

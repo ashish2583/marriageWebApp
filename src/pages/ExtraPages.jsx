@@ -9,6 +9,7 @@ export {default as LocalImages} from './extra/LocalImages';
 export {default as ChatPage} from './extra/ChatPage';
 export {default as VendorImageServerConfig} from './extra/VendorImageServerConfig';
 export {default as PortalChargePolicy} from './extra/PortalChargePolicy';
+export {default as PaymentRelatedPolicy} from './extra/PaymentRelatedPolicy';
 export {default as AdminSettings} from './extra/AdminSettings';
 export {default as AdminVendorStatusList} from './extra/AdminVendorStatusList';
 export {default as AdminProfile} from './extra/AdminProfile';

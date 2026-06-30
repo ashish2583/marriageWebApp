@@ -88,12 +88,21 @@ const getProductId = item => {
   const product = getProductObject(item);
   return (
     item?.orderedProduct?.productID ||
+    item?.orderedProduct?.productId ||
+    item?.orderedProduct?.proId ||
+    item?.orderedProduct?.product?._id ||
+    item?.orderedProduct?.product ||
     item?.productID ||
     item?.productId ||
     item?.proId ||
+    item?.productDetails?.productID ||
+    item?.productDetails?.productId ||
+    item?.productDetails?.proId ||
+    item?.productDetails?._id ||
     product?.productID ||
     product?.productId ||
     product?.proId ||
+    product?._id ||
     ''
   );
 };

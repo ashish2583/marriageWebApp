@@ -7,6 +7,7 @@ import {getName} from '../../lib/dataHelpers';
 import {useState} from 'react';
 
 const valueOrDash = value => value === undefined || value === null || value === '' ? 'Not available' : String(value);
+const firstAvailable = values => values.find(value => value !== undefined && value !== null && String(value).trim() !== '');
 
 const getProductObject = item => {
   if (item?.productDetails && typeof item.productDetails === 'object') return item.productDetails;
@@ -21,14 +22,41 @@ const getProductId = item => {
   const product = getProductObject(item);
   return (
     item?.orderedProduct?.productID ||
+    item?.orderedProduct?.productId ||
+    item?.orderedProduct?.proId ||
+    item?.orderedProduct?.product?._id ||
+    item?.orderedProduct?.product ||
     item?.productID ||
     item?.productId ||
     item?.proId ||
+    item?.productDetails?.productID ||
+    item?.productDetails?.productId ||
+    item?.productDetails?.proId ||
+    item?.productDetails?._id ||
     product?.productID ||
     product?.productId ||
     product?.proId ||
+    product?._id ||
     ''
   );
+};
+
+const getOrderProductId = item => {
+  const orderedProductId = firstAvailable([
+    item?.orderedProduct?._id?.$oid,
+    item?.orderedProduct?._id,
+    item?.orderedProduct?.orderProductId,
+    item?.orderedProduct?.productOrderId,
+  ]);
+  if (orderedProductId) return orderedProductId;
+
+  const candidates = [
+    item?.orderProductId,
+    item?.productOrderId,
+    item?._id?.$oid,
+    item?._id,
+  ];
+  return firstAvailable(candidates) || '';
 };
 
 const getProductQuantity = item => Number(item?.orderedProduct?.quantity || item?.quantity || item?.qty || 1);
@@ -65,27 +93,26 @@ export default function VendorCancellationPolicy() {
   const deductionPercent = Number(policy.deductionPercent || (isForceCancel ? 75 : 40));
   const orderId = getOrderId(booking);
   const productID = getProductId(product);
+  const orderProductId = getOrderProductId(product);
   const productAmount = getProductPrice(product);
   const deductionAmount = productAmount * deductionPercent / 100;
   const createdAt = policy.createdAt || product?.createdAt || product?.orderedProduct?.createdAt || booking?.createdAt;
 
   const cancelOrder = async () => {
-    if (!orderId || !productID) {
-      notify('Order id or product id not found', 'error');
+    if (!orderId || (!isForceCancel && !productID) || (isForceCancel && !orderProductId)) {
+      notify(isForceCancel ? 'Order id or order product id not found' : 'Order id or product id not found', 'error');
       return;
     }
     if (!window.confirm(isForceCancel ? 'By continuing, you accept the 75% force cancellation payment policy and want to cancel this order.' : 'By continuing, you accept the 40% vendor cancellation payment policy and want to cancel this order.')) return;
 
     setSaving(true);
     try {
-      const response = await apiRequest(endpoints.updateVendorStatus, {
+      const response = await apiRequest(isForceCancel ? endpoints.vendorForceCancel : endpoints.updateVendorStatus, {
         method: isForceCancel ? 'POST' : 'PUT',
         token: session.token,
-        body: {
-          orderId,
-          productID,
-          vendorAccepted: isForceCancel ? 'Canceled' : 'Rejected',
-        },
+        body: isForceCancel
+          ? {orderId, orderProductId, productID, vendorAccepted: 'Canceled'}
+          : {orderId, productID, vendorAccepted: 'Rejected'},
       });
       notify(response?.message || 'Order cancelled successfully');
       navigate('/vendor/bookings');
@@ -116,6 +143,7 @@ export default function VendorCancellationPolicy() {
               <span><small>Order ID</small>{valueOrDash(orderId)}</span>
               <span><small>Product</small>{getName(getProductObject(product))}</span>
               <span><small>Product ID</small>{valueOrDash(productID)}</span>
+              {isForceCancel && <span><small>Order Product ID</small>{valueOrDash(orderProductId)}</span>}
               <span><small>Created on</small>{formatDate(createdAt)}</span>
             </div>
           </Card>

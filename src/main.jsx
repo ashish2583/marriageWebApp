@@ -8,6 +8,7 @@ import './admin-mobile.css';
 import './admin-orders.css';
 import './admin-vendors.css';
 import './admin-manage.css';
+import './admin-support.css';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {

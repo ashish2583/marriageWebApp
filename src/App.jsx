@@ -19,6 +19,7 @@ import {
   MakePayment,
   OrderDetail,
   PackagePlan,
+  PaymentRelatedPolicy,
   PortalChargePolicy,
   VendorCancellationPolicy,
   VendorImageServerConfig,
@@ -111,6 +112,7 @@ export default function App() {
       <Route path="/profile/edit" element={<Protected role="customer"><EditProfile /></Protected>} />
       <Route path="/change-password" element={<Protected role="customer"><ChangePassword /></Protected>} />
       <Route path="/privacy" element={<Protected role="customer"><Privacy /></Protected>} />
+      <Route path="/payment-related-policy" element={<PaymentRelatedPolicy />} />
       <Route path="/bookform" element={<Navigate to="/cart" replace />} />
       <Route path="/checkout" element={<Navigate to="/cart" replace />} />
       <Route path="/vendor" element={<Navigate to="/vendor/dashboard" replace />} />
