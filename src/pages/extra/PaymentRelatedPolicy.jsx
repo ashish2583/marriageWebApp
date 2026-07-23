@@ -3,6 +3,17 @@ import {Card, PageHeader} from '../../components/UI';
 
 const policySections = [
   {
+    icon: FileCheck2,
+    title: 'App and Developer Details',
+    points: [
+      'App name: sadiStore.',
+      'Developer name: VS Group.',
+      'Legal entity: VS Group.',
+      'This payment related policy applies to the sadiStore mobile application published on Google Play by VS Group.',
+      'For payment, refund, cancellation, or privacy questions, users can contact support through the sadiStore app or website.',
+    ],
+  },
+  {
     icon: RotateCcw,
     title: 'Refund and Cancellation Policy',
     points: [
@@ -66,16 +77,16 @@ export default function PaymentRelatedPolicy() {
     <div className="page payment-policy-page">
       <PageHeader
         eyebrow="Policy Center"
-        title="Payment Related Policy"
-        text="Payment, refund, cancellation, return, and delivery rules from the policy document."
+        title="sadiStore Payment Related Policy"
+        text="Payment, refund, cancellation, return, and delivery rules for the sadiStore mobile app by VS Group."
       />
 
       <Card className="payment-policy-hero">
         <BadgeIndianRupee />
         <div>
-          <span>VS Group policy summary</span>
+          <span>VS Group policy summary for sadiStore</span>
           <h2>Read before making a payment, refund request, or cancellation.</h2>
-          <p>This page is prepared from the supplied policy PDF and is available to customer, vendor, and admin logins.</p>
+          <p>This policy belongs to the sadiStore mobile application and is published by VS Group for Google Play users, customers, vendors, and admins.</p>
         </div>
       </Card>
 
