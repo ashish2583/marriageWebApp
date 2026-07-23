@@ -85,6 +85,7 @@ export default function App() {
     <Route path="/login" element={<Login />} />
     <Route path="/signup" element={<Signup />} />
     <Route path="/forgot-password" element={<ForgotPassword />} />
+    <Route path="/sadiStore_payment-related-policy" element={<PaymentRelatedPolicy />} />
     <Route path="/payment-related-policy" element={<PaymentRelatedPolicy />} />
     <Route element={<Protected><AppShell /></Protected>}>
       <Route path="/" element={<Navigate to="/customer/dashboard" replace />} />

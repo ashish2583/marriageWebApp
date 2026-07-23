@@ -47,6 +47,7 @@ const routes = [
   ['public', '/login', 'Sign in to Marriage'],
   ['public', '/signup', 'Join Marriage'],
   ['public', '/forgot-password', 'Forgot password'],
+  ['public', '/sadiStore_payment-related-policy', 'sadiStore Payment Related Policy'],
   ['public', '/payment-related-policy', 'Payment Related Policy'],
   ['customer', '/customer/dashboard', 'Plan every beautiful moment'],
   ['customer', '/package-plan', 'Package Plan'],
