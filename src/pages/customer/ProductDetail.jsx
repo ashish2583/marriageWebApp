@@ -2,7 +2,7 @@ import {CalendarDays, IndianRupee, ShoppingCart, Sparkles, Star, Truck} from 'lu
 import {useState} from 'react';
 import {useLocation, useParams} from 'react-router-dom';
 import {Button, Card, Modal} from '../../components/UI';
-import {useApp} from '../../lib/AppContext';
+import {isGuestSession, useApp} from '../../lib/AppContext';
 import {API_BASE_URL, apiRequest, endpoints} from '../../lib/api';
 import {getId, getName, productMongoId, productPublicId, todayInputValue, userIdOf} from '../../lib/dataHelpers';
 import {asset, products as fallbackProducts} from '../../lib/demoData';
@@ -72,6 +72,10 @@ export function ProductDetail() {
   const {id} = useParams(); const location = useLocation(); const {session, localProducts, addToCart, notify} = useApp(); const product = location.state?.product || localProducts.find(p => [p._id, p.productID, p.productId, p.proId].includes(id)) || fallbackProducts[0]; const images = productImages(product); const videos = productVideos(product); const reviews = reviewList(product); const rating = ratingOf(product, reviews); const ratingCount = product.ratingCount || product.totalRatings || product.reviewCount || reviews.length; const [image, setImage] = useState(images[0]); const [fullImage, setFullImage] = useState(null); const [video, setVideo] = useState(null); const [dates, setDates] = useState({start: '', end: ''}); const [saving, setSaving] = useState(false);
   const today = todayInputValue();
   const book = async () => {
+    if (isGuestSession(session)) {
+      window.alert('Please login first to add this package to cart.');
+      return;
+    }
     if (!dates.start || !dates.end) return notify('Choose booking start and end dates.', 'error');
     if (dates.end < dates.start) return notify('End date must be after start date.', 'error');
     setSaving(true);

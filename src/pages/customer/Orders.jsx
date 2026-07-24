@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
 import {MessageCircle, Star, UploadCloud, X} from 'lucide-react';
 import {Button, Card, Empty, Field, Modal, PageHeader} from '../../components/UI';
-import {useApp} from '../../lib/AppContext';
+import {isGuestSession, useApp} from '../../lib/AppContext';
 import {apiRequest, endpoints} from '../../lib/api';
 import {extractList, formatAmount, getId, getName, orderIdOf, orderProducts, productOf, startOf, endOf, userIdOf} from '../../lib/dataHelpers';
 import {asset} from '../../lib/demoData';
@@ -97,6 +97,7 @@ export function Orders() {
   const [submittingRating, setSubmittingRating] = useState(false);
 
   useEffect(() => {
+    if (isGuestSession(session)) return;
     apiRequest(`${endpoints.orders}${userIdOf(session.user)}`, {token: session.token})
       .then(r => setOrders(extractList(r)))
       .catch(error => notify(error.message, 'error'));

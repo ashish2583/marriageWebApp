@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
 import GoogleLocationPicker, {calculateDistanceKm, geocodeLocation} from '../../components/GoogleLocationPicker';
 import {Button, Card, Empty, Field, Modal, PageHeader} from '../../components/UI';
-import {useApp} from '../../lib/AppContext';
+import {isGuestSession, useApp} from '../../lib/AppContext';
 import {apiRequest, endpoints} from '../../lib/api';
 import {bookingFormData, cartIdOf, endOf, extractList, productOf, startOf, todayInputValue, userIdOf} from '../../lib/dataHelpers';
 import {asset} from '../../lib/demoData';
@@ -33,7 +33,8 @@ export function Cart() {
   const [form, setForm] = useState({customerName: session.user.name || '', phone: session.user.phone || '', phone2: '', address: session.user.address || '', bookingPlace: '', start: '', end: '', paymentMode: 'upi', paymentStatus: 'pending', bookingDetails: '', paymentProof: null, totalPaidAmount: '', tranjectionId: '', cardHolderName: '', cardNumber: '', cardExpiry: '', cardCvv: ''});
   const [eventLocations, setEventLocations] = useState({});
   const today = todayInputValue();
-  useEffect(() => {apiRequest(`${endpoints.cart}${userIdOf(session.user)}`, {token: session.token}).then(r => setCart(extractList(r))).catch(error => notify(error.message, 'error'));}, [session, setCart, notify]);
+  const guest = isGuestSession(session);
+  useEffect(() => {if (guest) return; apiRequest(`${endpoints.cart}${userIdOf(session.user)}`, {token: session.token}).then(r => setCart(extractList(r))).catch(error => notify(error.message, 'error'));}, [guest, session, setCart, notify]);
   const productKey = (item, index) => `${productOf(item).productID || productOf(item).productId || productOf(item)._id || cartIdOf(item) || 'product'}-${index}`;
   const travelRate = item => Number(productOf(item).travelPerKilometer ?? item.travelPerKilometer ?? 0) || 0;
   const productLocation = item => productOf(item).location || item.location || productOf(item).address || item.vendorLocation || item.venderLocation || '';
@@ -46,12 +47,21 @@ export function Cart() {
   const resolvedPaymentStatus = amount => amount >= payableTotal ? 'full' : 'half';
   const quantity = async (item, change) => {
     const nextQuantity = Math.max(1, Number(item.quantity || 1) + change);
+    if (guest) {
+      setCart(items => items.map(current => cartIdOf(current) === cartIdOf(item) ? {...current, quantity: nextQuantity} : current));
+      return;
+    }
     try {
       await apiRequest(`${endpoints.updateCart}${cartIdOf(item)}`, {method: 'PUT', token: session.token, body: JSON.stringify({BookingStartDate: startOf(item), BookingEndDate: endOf(item), quantity: nextQuantity})});
       setCart(items => items.map(current => cartIdOf(current) === cartIdOf(item) ? {...current, quantity: nextQuantity} : current));
     } catch (error) { notify(error.message, 'error'); }
   };
   const remove = async item => {
+    if (guest) {
+      setCart(items => items.filter(current => cartIdOf(current) !== cartIdOf(item)));
+      notify('Cart item deleted.');
+      return;
+    }
     try {
       await apiRequest(`${endpoints.deleteCart}${cartIdOf(item)}`, {method: 'DELETE', token: session.token});
       setCart(items => items.filter(current => cartIdOf(current) !== cartIdOf(item)));
@@ -104,6 +114,7 @@ export function Cart() {
   };
   const checkout = async e => {
     e.preventDefault();
+    if (guest) return notify('Please create an account or sign in to complete booking.', 'error');
     if (!form.start || !form.end) return notify('Please select booking start and end date.', 'error');
     if (!form.customerName.trim() || !form.phone.trim() || !form.address.trim()) return notify('Please complete customer details.', 'error');
     if (!Number.isFinite(paidAmount) || paidAmount <= 0) return notify('Please enter a valid total paid amount.', 'error');

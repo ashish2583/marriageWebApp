@@ -21,8 +21,8 @@ export function Empty({title, text}) {
   return <div className="empty"><div className="empty-mark">M</div><h3>{title}</h3><p>{text}</p></div>;
 }
 
-export function Loading() {
-  return <div className="loading"><LoaderCircle size={32} /><span>Loading...</span></div>;
+export function Loading({label = 'Loading...', detail = 'Please wait while we prepare the latest details.'}) {
+  return <div className="loading" role="status" aria-live="polite"><span><LoaderCircle size={28} /></span><strong>{label}</strong><small>{detail}</small></div>;
 }
 
 export function Modal({title, children, onClose, wide = false}) {

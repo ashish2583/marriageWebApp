@@ -6,6 +6,9 @@ import {extractList} from './dataHelpers';
 import {categories as demoCategories, products as demoProducts, vendors as demoVendors} from './demoData';
 
 const AppContext = createContext(null);
+const GUEST_TOKEN = 'merrage-guest-session';
+
+export const isGuestSession = session => Boolean(session?.user?.isGuest || session?.token === GUEST_TOKEN);
 
 export function AppProvider({children}) {
   const [session, setSessionState] = useState(getSession);
@@ -62,7 +65,7 @@ export function AppProvider({children}) {
   }, [notify, session, setSession]);
 
   useEffect(() => {
-    if (!session?.token) return;
+    if (!session?.token || isGuestSession(session)) return;
     apiRequest(endpoints.categories, {token: session.token})
       .then(response => {
         const categories = extractList(response);
@@ -75,6 +78,25 @@ export function AppProvider({children}) {
     const nextSession = await loginApi(credentials);
     setSession(nextSession);
     notify('Signed in successfully.');
+    return nextSession;
+  };
+
+  const guestLogin = () => {
+    const nextSession = {
+      token: GUEST_TOKEN,
+      user: {
+        userId: 'guest',
+        name: 'Guest User',
+        phone: '',
+        email: 'guest@merrage.local',
+        address: 'Preview account',
+        role: 'customer',
+        isGuest: true,
+        profileImage: '/assets/image/Wedding.jpg',
+      },
+    };
+    setSession(nextSession);
+    notify('Signed in as guest.');
     return nextSession;
   };
 
@@ -98,7 +120,7 @@ export function AppProvider({children}) {
   };
 
   const value = {
-    session, setSession, login, logout, updateSessionUser, toast, notify, dismissToast,
+    session, setSession, login, guestLogin, logout, updateSessionUser, toast, notify, dismissToast,
     cart, setCart, addToCart, orders, setOrders,
     localProducts, setLocalProducts, localCategories, setLocalCategories,
     loading: loadingCount > 0,

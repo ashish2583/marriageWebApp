@@ -1,5 +1,5 @@
-import {CalendarDays, CircleUserRound, CreditCard, FileText, FolderTree, HeartHandshake, Home, Images, LayoutDashboard, LockKeyhole, LogOut, Menu, MessageCircleMore, Package, PackagePlus, PartyPopper, Server, ShieldAlert, ShoppingBag, ShoppingCart, Store, Tags, Users, X} from 'lucide-react';
-import {useEffect, useState} from 'react';
+import {CalendarDays, CircleUserRound, CreditCard, FileText, FolderTree, HeartHandshake, Home, Images, LayoutDashboard, LoaderCircle, LockKeyhole, LogOut, Menu, MessageCircleMore, Package, PackagePlus, PartyPopper, Server, ShieldAlert, ShoppingBag, ShoppingCart, Store, Tags, Users, X} from 'lucide-react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {NavLink, Outlet, useLocation} from 'react-router-dom';
 import {useApp} from '../lib/AppContext';
 
@@ -51,6 +51,9 @@ export default function AppShell() {
   const {session, logout, cart} = useApp();
   const [open, setOpen] = useState(false);
   const [routeLoading, setRouteLoading] = useState(false);
+  const [pendingLabel, setPendingLabel] = useState('');
+  const mounted = useRef(false);
+  const routeTimer = useRef(null);
   const location = useLocation();
   const role = session?.user?.role;
   const vendor = role === 'vendor';
@@ -59,24 +62,44 @@ export default function AppShell() {
   const homePath = admin ? '/admin/dashboard' : vendor ? '/vendor/dashboard' : '/customer/dashboard';
   const profilePath = admin ? '/admin/profile' : vendor ? '/vendor/profile' : '/profile';
   const showLoader = routeLoading;
+  const currentLabel = links.find(([to]) => location.pathname === to || location.pathname.startsWith(`${to}/`))?.[1] || 'Page';
+  const activeLabel = pendingLabel || currentLabel;
   const currentDate = new Date().toLocaleDateString('en-IN', {weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'});
+  const showRouteLoader = useCallback(label => {
+    if (routeTimer.current) window.clearTimeout(routeTimer.current);
+    if (label) setPendingLabel(label);
+    setRouteLoading(true);
+    routeTimer.current = window.setTimeout(() => {
+      setRouteLoading(false);
+      setPendingLabel('');
+    }, 620);
+  }, []);
+  const closeNavigation = useCallback(label => {
+    setOpen(false);
+    showRouteLoader(label);
+  }, [showRouteLoader]);
 
   useEffect(() => {
-    setRouteLoading(true);
-    const timer = window.setTimeout(() => setRouteLoading(false), 350);
-    return () => window.clearTimeout(timer);
-  }, [location.pathname, location.search]);
+    if (!mounted.current) {
+      mounted.current = true;
+      return undefined;
+    }
+    showRouteLoader();
+    return () => {
+      if (routeTimer.current) window.clearTimeout(routeTimer.current);
+    };
+  }, [location.pathname, location.search, showRouteLoader]);
 
   return <div className="app-shell">
     <aside className={`sidebar ${open ? 'sidebar-open' : ''}`}>
       <button className="sidebar-close" onClick={() => setOpen(false)}><X /></button>
-      <NavLink to={homePath} className="brand" onClick={() => setOpen(false)}>
+      <NavLink to={homePath} className="brand" onClick={() => closeNavigation('Dashboard')}>
         <img src="/assets/vslogo.png" alt="" /><div><strong>Marriage</strong><span>Wedding services</span></div>
       </NavLink>
-      <nav>{links.map(([to, label, Icon]) => <NavLink key={to} to={to} end={to.endsWith('/dashboard')} onClick={() => setOpen(false)}><Icon size={19} /><span>{label}</span>{label === 'My Cart' && cart.length > 0 && <b>{cart.length}</b>}</NavLink>)}</nav>
+      <nav>{links.map(([to, label, Icon]) => <NavLink key={to} to={to} end={to.endsWith('/dashboard')} onClick={() => closeNavigation(label)}><Icon size={19} /><span>{label}</span>{label === 'My Cart' && cart.length > 0 && <b>{cart.length}</b>}</NavLink>)}</nav>
       <div className="sidebar-bottom">
-        {!admin && <NavLink to={vendor ? '/vendor/change-password' : '/change-password'} onClick={() => setOpen(false)}><LockKeyhole size={19} />Change Password</NavLink>}
-        {!admin && <NavLink to={vendor ? '/vendor/privacy' : '/privacy'} onClick={() => setOpen(false)}><HeartHandshake size={19} />Privacy Policy</NavLink>}
+        {!admin && <NavLink to={vendor ? '/vendor/change-password' : '/change-password'} onClick={() => closeNavigation('Change Password')}><LockKeyhole size={19} />Change Password</NavLink>}
+        {!admin && <NavLink to={vendor ? '/vendor/privacy' : '/privacy'} onClick={() => closeNavigation('Privacy Policy')}><HeartHandshake size={19} />Privacy Policy</NavLink>}
         <button onClick={logout}><LogOut size={19} />Logout</button>
       </div>
     </aside>
@@ -86,6 +109,6 @@ export default function AppShell() {
       <div className="top-date"><CalendarDays size={16} /><span>{currentDate}</span></div>
       <Outlet />
     </main>
-    {showLoader && <div className="page-loader"><div /><span>Loading...</span></div>}
+    {showLoader && <div className="page-loader" role="status" aria-live="polite"><section><span className="page-loader-spinner"><LoaderCircle /></span><strong>Opening {activeLabel}</strong><small>Loading the latest view</small></section></div>}
   </div>;
 }
