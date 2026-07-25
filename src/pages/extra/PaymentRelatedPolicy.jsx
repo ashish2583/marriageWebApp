@@ -36,6 +36,15 @@ const sections = [
     ],
   },
   {
+    title: 'Developer Program Policy',
+    bullets: [
+      'SadiStore follows applicable developer program policy requirements for user data transparency and account deletion.',
+      'Users can request account deletion through the app or by contacting support using the contact details provided on the platform.',
+      'When an account deletion request is received, SadiStore will delete or anonymize personal account data unless retention is required for legal, security, fraud prevention, payment, or order record purposes.',
+      'Some booking, payment, refund, or support records may be retained for the period required by applicable laws and business compliance requirements.',
+    ],
+  },
+  {
     title: 'Contact Information',
     body: ['For any questions or support regarding bookings, customers may contact our support team through the contact details provided on the platform.'],
   },
