@@ -56,7 +56,7 @@ export function CustomerHome() {
   return (
     <div className="page">
       <section className="customer-hero"><div className="hero-content"><span className="eyebrow light">Wedding booking platform</span><h1>Plan every beautiful moment in one place.</h1><p>Explore trusted wedding services, compare vendors, and book confidently.</p><div className="hero-search"><Search /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search wedding services" /></div></div><div className="hero-photo"><img src={asset('image/Wedding.jpg')} alt="Wedding celebration" /><div className="hero-stat"><strong>One place</strong><span>for every celebration detail</span></div></div></section>
-      <section className="section"><div className="section-heading"><div><span className="eyebrow">Curated for your day</span><h2>Popular services</h2></div></div><div className="feature-strip">{[['Decor', 'image/flor.jpg'], ['Boys', 'image/catering.webp'], ['Music', 'image/dj.jpg'], ['Wedding rides', 'image/weddingcar.jpg']].map(([name, img]) => <div key={name}><img src={asset(img)} alt="" /><strong>{name}</strong></div>)}</div></section>
+      <section className="section"><div className="section-heading"><div><span className="eyebrow">Curated for your day</span><h2>Popular services</h2></div></div><div className="feature-strip">{[['Decor', 'image/flor.jpg'], ['Boys Service', 'image/catering.webp'], ['Music', 'image/dj.jpg'], ['Wedding rides', 'image/weddingcar.jpg']].map(([name, img]) => <div key={name}><img src={asset(img)} alt="" /><strong>{name}</strong></div>)}</div></section>
       <section className="section category-section">
         <div className="section-heading category-heading">
           <div>
