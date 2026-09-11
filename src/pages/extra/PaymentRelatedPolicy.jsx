@@ -46,7 +46,7 @@ const sections = [
   },
   {
     title: 'Contact Information',
-    body: ['For any questions or support regarding bookings, customers may contact our support team through the contact details provided on the platform.'],
+    body: ['For any questions or support regarding bookings, customers may contact our support team through the contact details provided on the platform. Name - Ashish Kumar Veram, email ID - vermasoft.com@gmail.com, 7843949343akv@gmail.com, Contact - 7843949343'],
   },
 ];
 
